@@ -1,0 +1,83 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Ask a Question</title>
+</head>
+<body style="text-align: center;">
+    <h1 style="font-family: sans-serif">Ask a Question</h1>
+    <img>
+    <form action="/ask" method="POST">
+        <label for="question">Question:</label>
+        <input type="text" id="question" name="question" required>
+        <input type="submit" value="Ask">
+    </form>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask a Question</title>
+    <style>
+        body {
+            background-color: #f4f4f9;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            color: #333333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 18px;
+            color: #555555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ask a Question</h1>
+        <form action="/ask" method="POST">
+            <label for="question">Enter your question below:</label><br>
+            <input type="text" id="question" name="question" placeholder="Type your question here..." required><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</body>
+</html>
