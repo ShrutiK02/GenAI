@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech to Text to Speech Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #eef2f5;
+            color: #333;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .chat-title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #007BFF;
+            margin-bottom: 20px;
+        }        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .chat-message {
+            margin: 10px 0;
+        }
+        .chat-message.user {
+            text-align: right;
+            color: #007BFF;
+        }
+        .chat-message.bot {
+            text-align: left;
+            color: #333;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .recording-status {
+            font-size: 0.9rem;
+            color: #007BFF;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container chat-container">
+        <div class="chat-title">Speech to Text to Speech Chatbot</div>
+        <div id="chat-box" class="chat-box">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="controls">
+            <button id="start-record" class="btn btn-primary">🎤 Start Recording</button>
+            <button id="stop-record" class="btn btn-danger" disabled>⏹  Stop Recording</button>
+            <div id="recording-status" class="recording-status">Click "Start Recording" to begin.</div>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const startRecordBtn = document.getElementById("start-record");
+        const stopRecordBtn = document.getElementById("stop-record");
+        const recordingStatus = document.getElementById("recording-status");
+
+        let mediaRecorder;
+        let audioChunks = [];
+
+        // Start recording
+        startRecordBtn.addEventListener("click", async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.onstart = () => {
+                    audioChunks = [];
+                    recordingStatus.textContent = "Recording...";
+                    startRecordBtn.disabled = true;
+                    stopRecordBtn.disabled = false;
+                };
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const formData = new FormData();
+                    formData.append("audio", audioBlob, "recording.webm");
+
+                    recordingStatus.textContent = "Uploading audio...";
+                    startRecordBtn.disabled = false;
+                    stopRecordBtn.disabled = true;
+
+                    try {
+                        const response = await fetch("/transcribe", {
+                            method: "POST",
+                            body: formData,
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+
+                            // Display user message
+                            addMessage(`You: ${data.transcription}`, "user");
+
+                            // Display bot's reply
+                            addMessage(`Bot: ${data.reply}`, "bot");
+
+                            // Add audio playback for the bot's response
+                            if (data.audio_url) {
+                                addMessage(
+                                    `<audio controls>
+                                        <source src="${data.audio_url}" type="audio/mp3">
+                                        Your browser does not support audio playback.
+                                     </audio>`,
+                                    "bot"
+                                );
+                            }
+                        } else {
+                            const error = await response.json();
+                            addMessage(`Error: ${error.error}`, "bot");
+                        }
+                    } catch (err) {
+                        console.error("Error:", err);
+                        addMessage("An error occurred while processing your audio.", "bot");
+                    }
+                };
+
+                mediaRecorder.start();
+            } catch (err) {
+                console.error("Error accessing microphone:", err);
+                recordingStatus.textContent = "Microphone access denied. Please check your permissions.";
+            }
+        });
+
+        // Stop recording
+        stopRecordBtn.addEventListener("click", () => {
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+            }
+        });
+      
+        // Add chat messages to the chat box
+        function addMessage(content, sender) {
+            const message = document.createElement("div");
+            message.className = `chat-message ${sender}`;
+            message.innerHTML = content;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
